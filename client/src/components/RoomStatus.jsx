@@ -29,12 +29,13 @@ function RoomStatus() {
   const handleBookRoom = async (roomno) => {
     try {
       // Update room status to "occupied"
-      await axios.put(`${process.env.REACT_APP_SERVER}/updateroomstatus`, {
+      await axios.post(`${process.env.REACT_APP_SERVER}/updateroomstatus`, {
         roomno: roomno,
         status: "occupied",
       });
 
       // Navigate to the create tenant page
+      window.location.href = "http://localhost:3000/createtenant";
     } catch (error) {
       console.log(error);
     }
