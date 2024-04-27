@@ -438,9 +438,25 @@ function bookroom(values, callback) {
   });
 }
 
-function updateRoomStatus(roomno, status, callback) {
-  const sql = "UPDATE room_status SET occupancy_status = ? WHERE room_no = ?";
-  con.query(sql, [status, roomno], (err, results) => {
+// function updateRoomStatus(roomno, status, callback) {
+//   const sql = "UPDATE room_status SET occupancy_status = ? WHERE room_no = ?";
+//   con.query(sql, [status, roomno], (err, results) => {
+//     if (err) {
+//       console.error(err);
+//       if (callback && typeof callback === "function") {
+//         callback(err, null);
+//       }
+//     } else {
+//       if (callback && typeof callback === "function") {
+//         callback(null, results);
+//       }
+//     }
+//   });
+// }
+
+function updateRoomStatus(roomno, status, endingDate, callback) {
+  const sql = "UPDATE room_status SET occupancy_status = ?, occupied_till = ? WHERE room_no = ?";
+  con.query(sql, [status, endingDate, roomno], (err, results) => {
     if (err) {
       console.error(err);
       if (callback && typeof callback === "function") {

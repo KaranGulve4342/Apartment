@@ -418,9 +418,10 @@ app.get("/roomstatus", function (req, res) {
 app.post("/updateroomstatus", function (req, res) {
   const roomno = req.body.roomno;
   const status = req.body.status; // New status to update
+  const occupied_till = req.body.endingDate
 
   // Update room status in the database
-  db.updateRoomStatus(roomno, status, (err, result) => {
+  db.updateRoomStatus(roomno, status, occupied_till, (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send("Error updating room status");
