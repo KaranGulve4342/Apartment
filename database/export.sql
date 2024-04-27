@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS `room_status` (
   `owner_name` VARCHAR(20) DEFAULT NULL,
   `rent` int DEFAULT NULL,
   `deposit` int DEFAULT NULL,
+  `occupied_till` DATE DEFAULT NULL,
   PRIMARY KEY (`room_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -142,11 +143,11 @@ INSERT INTO `owner` VALUES
 
 -- Populate the `tenant` table with sample data
 INSERT INTO `tenant` VALUES 
-(601, 'Gaurav', '2002-04-01', 11, 19, '2024-01-01', '2024-12-31', 25000, 5000, 'Not-Paid'),
-(602, 'Sanchit', '2002-08-23', 12, 23, '2024-01-01', '2024-12-31', 25000, 5000, 'Not-Paid'),
-(603, 'Kartik', '2002-06-12', 13, 41, '2024-01-01', '2024-12-31', 35000, 5000, 'Not-Paid'),
-(604, 'Ishna Kulkarni', '2002-04-23', 21, 35, '2024-01-01', '2024-12-31', 15000, 5000, 'Not-Paid'),
-(605, 'Krishna', '2002-09-30', 31, 56, '2024-01-01', '2024-12-31', 15000, 5000, 'Not-Paid');
+(601, 'Gaurav', '2002-04-01', 11, 19, '2024-01-01', '2024-12-11', 25000, 5000, 'Not-Paid'),
+(602, 'Sanchit', '2002-08-23', 12, 23, '2024-01-01', '2024-12-21', 25000, 5000, 'Not-Paid'),
+(603, 'Kartik', '2002-06-12', 13, 41, '2024-01-01', '2024-12-01', 35000, 5000, 'Not-Paid'),
+(604, 'Ishna Kulkarni', '2002-04-23', 21, 35, '2024-01-01', '2024-06-23', 15000, 5000, 'Not-Paid'),
+(605, 'Krishna', '2002-09-30', 31, 56, '2024-01-01', '2024-04-25', 15000, 5000, 'Not-Paid');
 
 -- Populate the `rental` table with sample data
 INSERT INTO `rental` (`starting_date`, `ending_date`, `monthly_rent`, `room_no`, `tenant_id`, `deposit`)
@@ -191,21 +192,21 @@ INSERT INTO `employee` VALUES
 (703,'Ganesh',4000,'Electrician ',21,NULL);
 
 -- Populate the `room_status` table with sample data
-INSERT INTO `room_status` (`room_no`, `type`, `floor`, `parking_slot`, `reg_no`, `block_no`, `occupancy_status`, `owner_name`, `rent`, `deposit`)
-SELECT r.`room_no`, r.`type`, r.`floor`, r.`parking_slot`, r.`reg_no`, r.`block_no`, 
-    CASE
-        WHEN t.`tenant_id` IS NOT NULL THEN 'occupied'
-        ELSE 'empty'
-    END AS `occupancy_status`,
-    o.`name` AS `owner_name`,
-    r.`rent` AS `rent`,
-    r.`deposit` AS `deposit`
-FROM `room` r
-LEFT JOIN `tenant` t ON r.`room_no` = t.`room_no`
-LEFT JOIN `owner` o ON r.`room_no` = o.`room_no`
-WHERE NOT EXISTS (
-    SELECT 1 FROM `room_status` WHERE `room_status`.`room_no` = r.`room_no`
-);
+-- INSERT INTO `room_status` (`room_no`, `type`, `floor`, `parking_slot`, `reg_no`, `block_no`, `occupancy_status`, `owner_name`, `rent`, `deposit`)
+-- SELECT r.`room_no`, r.`type`, r.`floor`, r.`parking_slot`, r.`reg_no`, r.`block_no`, 
+--     CASE
+--         WHEN t.`tenant_id` IS NOT NULL THEN 'occupied'
+--         ELSE 'empty'
+--     END AS `occupancy_status`,
+--     o.`name` AS `owner_name`,
+--     r.`rent` AS `rent`,
+--     r.`deposit` AS `deposit`
+-- FROM `room` r
+-- LEFT JOIN `tenant` t ON r.`room_no` = t.`room_no`
+-- LEFT JOIN `owner` o ON r.`room_no` = o.`room_no`
+-- WHERE NOT EXISTS (
+--     SELECT 1 FROM `room_status` WHERE `room_status`.`room_no` = r.`room_no`
+-- );
 
 -- Add foreign key constraints
 
@@ -243,5 +244,37 @@ ALTER TABLE `employee`
   ADD CONSTRAINT `fk_employee_block` FOREIGN KEY (`block_no`) REFERENCES `block` (`block_no`);
 
 -- Add foreign key constraints for `room_status`
-ALTER TABLE `room_status`
-  ADD CONSTRAINT `fk_room_status_block` FOREIGN KEY (`block_no`) REFERENCES `block` (`block_no`);
+-- ALTER TABLE `room_status`
+--   ADD CONSTRAINT `fk_room_status_block` FOREIGN KEY (`block_no`) REFERENCES `block` (`block_no`);
+
+
+INSERT INTO `room_status` (`room_no`, `type`, `floor`, `parking_slot`, `reg_no`, `block_no`, `occupancy_status`, `owner_name`, `rent`, `deposit`, `occupied_till`)
+SELECT r.`room_no`, r.`type`, r.`floor`, r.`parking_slot`, r.`reg_no`, r.`block_no`, 
+    CASE
+        WHEN t.`tenant_id` IS NOT NULL THEN 'occupied'
+        ELSE 'empty'
+    END AS `occupancy_status`,
+    o.`name` AS `owner_name`,
+    r.`rent` AS `rent`,
+    r.`deposit` AS `deposit`,
+    t.`ending_date` AS `occupied_till`
+FROM `room` r
+LEFT JOIN `tenant` t ON r.`room_no` = t.`room_no`
+LEFT JOIN `owner` o ON r.`room_no` = o.`room_no`
+WHERE NOT EXISTS (
+    SELECT 1 FROM `room_status` WHERE `room_status`.`room_no` = r.`room_no`
+);
+
+SET SQL_SAFE_UPDATES = 0;
+
+-- Update `occupied_till` with tenant ending date
+UPDATE `room_status` rs
+LEFT JOIN `tenant` t ON rs.`room_no` = t.`room_no`
+SET rs.`occupied_till` = t.`ending_date`;
+
+-- Set `occupied_till` to NULL for empty rooms
+UPDATE `room_status`
+SET `occupied_till` = NULL
+WHERE `occupancy_status` = 'empty';
+
+SET SQL_SAFE_UPDATES = 1;
