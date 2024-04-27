@@ -27,6 +27,11 @@ function Register() {
 
   const registerTenant = async () => {
     try {
+      await axios.post(`${process.env.REACT_APP_SERVER}/updateroomstatus`, {
+        roomno: roomno,
+        status: "occupied",
+        endingDate: endingDate,
+      });
       const res = await axios.post(`${process.env.REACT_APP_SERVER}/createtenant`, {
         tenantId: tenantId,
         name: name,
