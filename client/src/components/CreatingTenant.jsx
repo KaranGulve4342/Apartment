@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 function Register() {
   const tenantIdEl = useRef(null);
@@ -22,8 +23,21 @@ function Register() {
   const [endingDate, setEndingDate] = useState(""); // Changed from endDate to endingDate to match backend
   const [rent, setRent] = useState("");
   const [deposit, setDeposit] = useState("");
+  const [unoccupiedRooms, setUnoccupiedRooms] = useState([]);
 
 
+  useEffect(() => {
+    fetchUnoccupiedRooms();
+  }, []);
+
+  const fetchUnoccupiedRooms = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_SERVER}/unoccupiedrooms`);
+      setUnoccupiedRooms(response.data);
+    } catch (error) {
+      console.error("Error fetching unoccupied rooms:", error);
+    }
+  };
 
   const registerTenant = async () => {
     try {
@@ -118,7 +132,7 @@ function Register() {
               className="w-60 rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
             />
           </div>
-          <div>
+          {/* <div>
             <label htmlFor="room-no" className="mb-3 block text-base font-medium text-[#07074D]">
               Room No.
             </label>
@@ -132,7 +146,27 @@ function Register() {
               placeholder="Room No."
               className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
             />
-          </div>
+          </div> */}
+          <div className="mb-5">
+          <label htmlFor="room-no" className="mb-3 block text-base font-medium text-[#07074D]">
+            Room No.
+          </label>
+          <select
+            ref={roomEl}
+            name="room-no"
+            id="room-no"
+            value={roomno}
+            onChange={(e) => setRoomno(e.target.value)}
+            className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
+          >
+            <option value="">Select Room No.</option>
+            {unoccupiedRooms.map((roomNumber) => (
+              <option key={roomNumber} value={roomNumber}>
+                {roomNumber}
+              </option>
+            ))}
+          </select>
+        </div>
         </div>
         <div className="mb-5 flex gap-5 flex-wrap">
           <div>
