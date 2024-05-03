@@ -431,6 +431,19 @@ app.post("/updateroomstatus", function (req, res) {
   });
 });
 
+app.get("/unoccupiedrooms", function (req, res) {
+  // Query the database to fetch room numbers of unoccupied rooms
+  db.getUnoccupiedRooms((err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Error fetching unoccupied rooms");
+    } else {
+      // Extract room numbers from the result
+      const roomNumbers = result.map(room => room.room_no);
+      res.status(200).json(roomNumbers);
+    }
+  });
+});
 
 //Other routes
 app.get("*", function (req, res) {

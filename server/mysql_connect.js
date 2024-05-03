@@ -470,6 +470,13 @@ function updateRoomStatus(roomno, status, endingDate, callback) {
   });
 }
 
+function getUnoccupiedRooms(callback) {
+  const sql = "SELECT room_no FROM room_status WHERE occupancy_status = 'empty'";
+  con.query(sql, (err, results) => {
+    callback(err, results);
+  });
+}
+
 module.exports = {
   connect,
   registercomplaint,
@@ -500,4 +507,5 @@ module.exports = {
   deletecomplaint,
   bookroom,
   updateRoomStatus,
+  getUnoccupiedRooms,
 };
